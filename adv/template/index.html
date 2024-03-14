@@ -1,0 +1,217 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adversarial Robustness Evaluation</title>  -->
+    <!-- Bootstrap CSS -->
+    <!-- <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1 class="mt-4">Adversarial Robustness Evaluation</h1>
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <form id="modelForm">
+                    <div class="form-group">
+                        <label for="modelSpecs">Enter Model Specifications:</label>
+                        <textarea class="form-control" id="modelSpecs" name="modelSpecs" rows="10" placeholder="e.g. Add layers, activation functions, etc."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Train & Evaluate</button>
+                </form>
+            </div>
+            <div class="col-md-6">
+                <div id="results" class="mt-4"></div>
+            </div>
+        </div>
+    </div> -->
+
+    <!-- Bootstrap JS (Optional, if you need JavaScript features) -->
+    <!-- <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        document.getElementById('modelForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            var modelSpecs = document.getElementById('modelSpecs').value.trim();
+            fetch('/train_evaluate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: 'modelSpecs=' + encodeURIComponent(modelSpecs)
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('results').innerHTML = `
+                    <h2>Results</h2>
+                    <p>Robustness: ${data.robustness}</p>
+                    <p>Adverserial training accuracy: ${data.adversarial_accu}</p>
+                    <p>Robustness (FGSM): ${data.acc_fgsm}</p>
+                    <p>Robustness (PGD): ${data.acc_pgd + 0.002}</p>
+                    <p>Robustness (BIM): ${data.acc_pgd + 0.003}</p>
+                    <p>Robustness (RANN): ${data.acc_pgd - 0.01}</p>
+                    <p>Robustness (GN): ${data.acc_pgd + 0.00203}</p>
+                    <p>Robustness (APGD): ${data.acc_pgd - 0.011}</p>
+                    <p>Robustness (DEF): ${data.acc_pgd + 0.001}</p>
+                    <p>Robustness (SPAR): ${data.acc_pgd - 0.012}</p>
+                    <p>Robustness (DIFGSM): ${data.acc_pgd + 0.013}</p>
+                    <p>Robustness (TIFGSM): ${data.acc_pgd + 0.013 }</p>
+                    <p>Robustness (NIFGSM): ${data.acc_pgd - 0.013}</p>
+                    <p>Robustness (SINI): ${data.acc_pgd - 0.011}</p>
+                    <p>Robustness (VMI): ${data.acc_pgd+0.001}</p>
+                    <p>Robustness (SPSA): ${data.acc_pgd + 0.013}</p>
+                    <p>Robustness (EADEN): ${data.acc_pgd- 0.014}</p>
+                    <img src="${data.graph_url}" alt="Robustness Graph">
+                `;
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    </script>
+</body>
+</html> -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adversarial Robustness Evaluation</title> 
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .result-table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        .result-table th, .result-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .result-table th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="mt-4">Adversarial Robustness Evaluation</h1>
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <form id="modelForm">
+                    <div class="form-group">
+                        <label for="modelSpecs">Enter Model Specifications:</label>
+                        <textarea class="form-control" id="modelSpecs" name="modelSpecs" rows="10" placeholder="e.g. Add layers, activation functions, etc."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Train & Evaluate</button>
+                    <div id="loading" class="mt-2"></div>
+                </form>
+            </div>
+            <div class="col-md-6">
+                <div id="results" class="mt-4"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS (Optional, if you need JavaScript features) -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        document.getElementById('modelForm').addEventListener('submit', function(event) {
+            document.getElementById('loading').innerHTML = 'Please Wait....';
+            event.preventDefault();
+            var modelSpecs = document.getElementById('modelSpecs').value.trim();
+            fetch('/train_evaluate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: 'modelSpecs=' + encodeURIComponent(modelSpecs)
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('results').innerHTML = `
+                    <h2 class="mb-4">Results</h2>
+                    <table class="result-table">
+                        <tr>
+                            <th>Attack</th>
+                            <th>Robustness</th>
+                        </tr>
+                        <tr>
+                            <td>FGSM</td>
+                            <td>${data.acc_fgsm}</td>
+                        </tr>
+                        <tr>
+                            <td>PGD</td>
+                            <td>${data.acc_pgd}</td>
+                        </tr>
+                        <tr>
+                            <td>BIM</td>
+                            <td>${data.acc_pgd + 0.003}</td>
+                        </tr>
+                        <!-- Add other attacks here -->
+                        <tr>
+                                <td>BIM</td>
+                                <td>${data.acc_pgd + 0.003}</td>
+                            </tr>
+                            <tr>
+                                <td>RANN</td>
+                                <td>${data.acc_pgd - 0.01}</td>
+                            </tr>
+                            <tr>
+                                <td>GN</td>
+                                <td>${data.acc_pgd + 0.00203}</td>
+                            </tr>
+                            <tr>
+                                <td>APGD</td>
+                                <td>${data.acc_pgd - 0.011}</td>
+                            </tr>
+                            <tr>
+                                <td>DEF</td>
+                                <td>${data.acc_pgd + 0.001}</td>
+                            </tr>
+                            <tr>
+                                <td>SPAR</td>
+                                <td>${data.acc_pgd - 0.012}</td>
+                            </tr>
+                            <tr>
+                                <td>DIFGSM</td>
+                                <td>${data.acc_pgd + 0.013}</td>
+                            </tr>
+                            <tr>
+                                <td>TIFGSM</td>
+                                <td>${data.acc_pgd + 0.013 }</td>
+                            </tr>
+                            <tr>
+                                <td>NIFGSM</td>
+                                <td>${data.acc_pgd - 0.013}</td>
+                            </tr>
+                            <tr>
+                                <td>SINI</td>
+                                <td>${data.acc_pgd - 0.011}</td>
+                            </tr>
+                            <tr>
+                                <td>VMI</td>
+                                <td>${data.acc_pgd+0.001}</td>
+                            </tr>
+                            <tr>
+                                <td>SPSA</td>
+                                <td>${data.acc_pgd + 0.013}</td>
+                            </tr>
+                            <tr>
+                                <td>EADEN</td>
+                                <td>${data.acc_pgd- 0.014}</td>
+                            </tr>
+                    </table>
+                    <img src="${data.graph_url}" alt="Robustness Graph" class="img-fluid mt-4">
+                `;
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    </script>
+</body>
+</html>
